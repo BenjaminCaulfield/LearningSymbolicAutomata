@@ -1,0 +1,38 @@
+\usepackage{ stmaryrd }
+\usepackage{todonotes}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata}
+
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+ \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
+ \newcommand{\op}{\mathcal{P}}
+ \newcommand{\opsub}[1]{\mathcal{P}_{#1}}
+ \newcommand{\notop}{\phi_{neg}}
+
+ 
+ \newcommand{\formulas}{\Phi}
+ \newcommand{\newalg}{\Lambda^*_{sym}}
+ \newcommand{\domain}{\mathcal{D}}
+ 
+ \newcommand{\partition}{P}
+ \newcommand{\sympartition}{P_{sym}}
+ \newcommand{\goodpart}{\hat{P}} %the partitioning function that assigns every formula to its corresponding state and assigns \notop to a single state (this is what makes maximal learnability, etc., work)
+
+ 
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{plain}
+\newtheorem{example}{Example}[section]
+
+

@@ -1,0 +1,120 @@
+%D'Antoni \& Drews have presented an algorithm for learning 
+
+\todo{definitions from Drews \& D'Antoni (and def of$ A_{init}$) will be added to the background info}
+
+In the work by D'Antoni \& Drews, each new counter-example is added to the observation table, which affects how the hypothesis automaton is built. 
+However, it is not clear how to incorporate new information when symbolic counter-examples are given. 
+We modify the algorithm from D'Antoni \& Drews to account for the \emph{observed partition}\todo{is this the phrase we want to use?}, as described in the below definition. 
+In this new algorithm, which we call $\newalg$, the observed partition is used in finding the separating predicates when the hypothesis automaton is created. 
+It is updated when a new counter-example is given and when a new state is added.
+
+
+\begin{definition}
+\textbf{(Observed Partition) } \todo{Is this the right way to formalize this?}
+During the execution of $\newalg$, the set $S$ contains strings representing the set of observed states. 
+Te \emph{observed partition} of a state $s \in S$, written $\op(s)$, is a pair $(U, \notop)$ where $U \subseteq 2^{\formulas \times S}$ with the following properties: \todo{is there a better value that U to put here?}
+\begin{itemize}
+\item There is an $s \in S$ such that $(\notop, s) \in U$
+\item $\sem{\notop }= \sem{\neg [\bigvee_{\phi \in \opsub{s}(S)} \phi ]}$
+\item For all distinct $(\phi',s'),(\phi'',s'')  \in U$, $\sem{\phi'} \cap \sem{\phi''} = \emptyset$
+\end{itemize}
+We define $\opsub{s'}(s) := \{ \phi \; | \; (\phi, s') \in \op(s) \}$ and $\opsub{S}(s) := \bigcup_{s' \in S} \opsub{s'}(s) $. 
+The observed partition of $S$ (hearafter referred to as the \emph{observed partition}) is the function $\op: S \rightarrow 2^{\formulas \times S}$ mapping each $s \in S$ to the observed partition of $s$.
+\end{definition}
+
+
+\subsection{Building the Symbolic Automaton}
+
+The process for building the symbolic automaton from an observation table and observed partition is the same as in $\Lambda^*$, with the exception of the formation of transitions.
+In $\Lambda^*$, the transitions are guarded by predicates formed from a partitioning function, $\partition$, which is based solely on the evidence automaton. 
+In addition to the evidence automaton, $\newalg$ will use the observed partition to form a \emph{symbolic partitioning function},  as described in the following definition.
+
+\begin{definition}
+\textbf{(Symbolic Partitioning Function)} \todo{I'm trying to keep it in the same form as the partitioning function from the last paper. Do we need to include $L_D$ in this definition? All of the partitioning functions we actually use are just based on the observed partition.}
+A symbolic partitioning function for a Boolean algebra $\mathcal{A} = (\domain, \Psi, \sem{\_}, \bot, \top, \vee, \wedge, \neg)$ is a function $\sympartition : (2^\domain)\times 2^{\formulas \times S} \rightarrow \Psi$.
+It takes as input a list $L_D := l_1 . . . l_k$ of disjoint sets of elements in $\domain$ and  the observed partition $\op(s)$ for some state $s$ (it doesn't need to know $s$).% a set of pairs of formulas and states $P :=  \{ (\phi_1,s_{I_1}), \dots, (\phi_r,s_{I_r}) \}$ .
+It returns a list $L_\Psi = \phi_1, \dots, \phi_k$ of predicates in $\Psi$ such that: \todo{fill this in}
+\begin{itemize}
+\item 
+\item
+\end{itemize}
+\end{definition}
+
+Without making any assumptions on the oracle, it is not clear that much interesting information is stored in the observed partition. 
+Different assumptions may require different $\sympartition$ functions. 
+
+However, there is a good partition function $\goodpart$ that will yield nice learnability results when certain assumptions are made on the oracle. 
+This partitioning function $\goodpart$ takes in a list $L_D$ (which it will ignore) and the observed partition $(U, \notop)$ for a state $s$ and returns a list $L_\Psi = \phi_1, \dots, \phi_k$ such that $\phi_i := \bigvee_{(\phi, s_i) \in U}  \phi$ for each $i$.
+
+
+%\begin{definition}
+%The symbolic partition function $\goodpart$ takes in a list $L_D$ (which it will ignore) and a set of pairs of formulas and states $P :=  \{ (\phi_1,s_{I_1}), \dots, (\phi_r,s_{I_r}) \}$, and returns a list of predicates $L_\Psi := \phi_1, \dots, \phi_k$ such that:
+%\begin{itemize}
+%\item 
+%\item
+%\end{itemize} 
+%\end{definition}
+
+
+
+\subsection{Updating the Observed Partition}
+
+When a symbolic automaton $M := (\mathcal{A}, Q, q_{init}, F, \Delta)$ is given to the oracle, a symbolic counter-example $\vec{\phi} := \phi_1, \phi_2, \dots \phi_k $ is returned. 
+The algorithm must then use $\vec{\phi}$ and the observation table $T$ to update the observed partition $\op$. 
+
+To do this, the algorithm chooses a string $w := a_1,\dots, a_k \in \sem{\vec{\phi}}$. 
+For each $i$ between $1$ and $k$, the prefix $w_i := a_1, \dots, a_i$ is added to the observation table and the state $s_i \in S$ such that $row(w_i) = row(s_i)$ is found.
+Let $\op(s_i) := (U_i, \notop)$.
+For each $(\phi, s) \in U_i$ such that $\sem{\phi} \cap \sem{\phi_i} \ne \emptyset$,  $(\phi, s)$ is removed from $U_i$.
+For some $a \in \sem{\phi} \cap \sem{\phi_i}$, the set $s'$ is found  such that$row(s_i \cdot a) = row(s')$ and the pair $(\phi \wedge \phi_i, s')$ is added to $U_i$.
+The same is done for $\phi \wedge \neg\phi_i$, assuming $\sem{\phi \wedge \neg\phi_i} \ne \emptyset$.
+If $\sem{\phi_i} \cap \sem{\notop} \ne \emptyset$, then $\notop$ is set to $\notop \wedge \neg\phi_i$. 
+\todo{is there an intuitive explanation of what this algorithm is doing?}
+
+
+\begin{example}
+Assume that $\newalg$ is learning an automaton defined over $\mathcal{A}_{init}$ and has formed some observation table $T$ with states $S := \{ \lambda, 1 \}$.
+The observed partition so far yields $\op(\lambda) := ( \{ (\top, 1) \}, \top)$ and $\op(1) := ( \{ (\top, \lambda) \}, \top)$.  
+Using the partition function $\goodpart$, the hypothesis $M_1$, shown in figure %\ref{first_hyp} is formed.
+When $M_1$ is given to the oracle, the counter-example $\vec{\phi} := [0,2),[3,4)$ is given. 
+This is used to update $\op$, so that $\op(\lambda) := ( \{ ([0,2), 1), ((-\infty,0)\cup[2,\infty),1) \}, (-\infty,0)\cup[2,\infty))$\todo{any way to make this more readable?} and $\op(1) := ( \{ ((-\infty,3)\cup[4,\infty), \lambda), ([3,4), 1)  \}, (-\infty,3)\cup[4,\infty) )$.
+The algorithm then creates the hypothesis $M_2$ shown in figure %\ref{second_hyp}.
+\end{example}
+
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid]
+  \node[state,initial]   (q0)                {$\lambda$};
+  \node[state, accepting]           (q1) [right=of q0] {$1$};
+  \path[->] (q0) edge [bend left = 45]  node [above] {$\top$} (q1)
+            (q1) edge [bend left=45] node [above] {$\top$} (q0);
+\end{tikzpicture}
+
+\begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid]
+  \node[state,initial]   (q0)                {$\lambda$};
+  \node[state, accepting]           (q1) [right=of q0] {$1$};
+  \path[->] (q0) edge [bend left = 45]  node [above] {$\top$} (q1)
+            (q1) edge [loop above] node {$[3,4)$}()	 
+            	edge [bend left=45] node [below] {$(-\infty,3)\cup[4,\infty)$} (q0);
+\end{tikzpicture} \todo{I need to make font smaller, remember that top edge is actually $[0,2) \cup (-\infty,0)\cup[2,\infty)$}
+
+%    \begin{tikzpicture}[shorten >=1pt,node distance=2cm,on grid]
+%      \node[state,initial]   (q0)                {$q_0$};
+%      \node[state]           (q_1) [right=of q_0] {$q_1$};
+%      \node[state,accepting] (q_2) [right=of q_1] {$q_2$};
+%      \path[->] (q_0) edge                node [above] {0} (q_1)
+%                      edge [loop above]   node         {1} ()
+%                      edge [bend left=45] node [below] {1} (q_2)
+%                      edge [bend right]   node [below] {0} (q_2)
+%                (q_1) edge                node [above] {1} (q_2);
+%    \end{tikzpicture}
+
+
+%Note that it is possible that  different strings $\phi_1,\dots, \phi_i$
+%\begin{example} 
+%Assume the interval algebra $\mathcal{A}_{int}$ is used with the observed partition, $\op := $, to create the automaton $M := (\mathcal{A}_{int}, Q, q_{init}, F, \Delta)$.
+%\end{example}
+
+
+
+
+
+
