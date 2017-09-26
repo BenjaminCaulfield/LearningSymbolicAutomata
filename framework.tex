@@ -6,7 +6,7 @@ In the work by D'Antoni \& Drews, each new counter-example is added to the obser
 However, it is not clear how to incorporate new information when symbolic counter-examples are given. 
 We modify the algorithm from D'Antoni \& Drews to account for the \emph{observed partition}\todo{is this the phrase we want to use?}, as described in the below definition. 
 In this new algorithm, which we call $\newalg$, the observed partition is used in finding the separating predicates when the hypothesis automaton is created. 
-It is updated when a new counter-example is given and when a new state is added.
+It is updated when a new counter-example is given and when a new state is added. \todo{Show graph of new framework?}
 
 
 \begin{definition}
@@ -32,12 +32,8 @@ In addition to the evidence automaton, $\newalg$ will use the observed partition
 \begin{definition}
 \textbf{(Symbolic Partitioning Function)} \todo{I'm trying to keep it in the same form as the partitioning function from the last paper. Do we need to include $L_D$ in this definition? All of the partitioning functions we actually use are just based on the observed partition.}
 A symbolic partitioning function for a Boolean algebra $\mathcal{A} = (\domain, \Psi, \sem{\_}, \bot, \top, \vee, \wedge, \neg)$ is a function $\sympartition : (2^\domain)\times 2^{\formulas \times S} \rightarrow \Psi$.
-It takes as input a list $L_D := l_1 . . . l_k$ of disjoint sets of elements in $\domain$ and  the observed partition $\op(s)$ for some state $s$ (it doesn't need to know $s$).% a set of pairs of formulas and states $P :=  \{ (\phi_1,s_{I_1}), \dots, (\phi_r,s_{I_r}) \}$ .
-It returns a list $L_\Psi = \phi_1, \dots, \phi_k$ of predicates in $\Psi$ such that: \todo{fill this in}
-\begin{itemize}
-\item 
-\item
-\end{itemize}
+It takes as input a list $L_D := l_1 . . . l_k$ of disjoint sets of elements in $\domain$ and  the observed partition $\op(s)$ for some state $s$ (it doesn't need to know $s$).   % a set of pairs of formulas and states $P :=  \{ (\phi_1,s_{I_1}), \dots, (\phi_r,s_{I_r}) \}$ .
+It returns a list $L_\Psi = \phi_1, \dots, \phi_k$ of predicates in $\Psi$ with the same properties as a Partitioning Function. \todo{Partitioning function will be defined in background info.}
 \end{definition}
 
 Without making any assumptions on the oracle, it is not clear that much interesting information is stored in the observed partition. 
@@ -66,7 +62,7 @@ To do this, the algorithm chooses a string $w := a_1,\dots, a_k \in \sem{\vec{\p
 For each $i$ between $1$ and $k$, the prefix $w_i := a_1, \dots, a_i$ is added to the observation table and the state $s_i \in S$ such that $row(w_i) = row(s_i)$ is found.
 Let $\op(s_i) := (U_i, \notop)$.
 For each $(\phi, s) \in U_i$ such that $\sem{\phi} \cap \sem{\phi_i} \ne \emptyset$,  $(\phi, s)$ is removed from $U_i$.
-For some $a \in \sem{\phi} \cap \sem{\phi_i}$, the set $s'$ is found  such that$row(s_i \cdot a) = row(s')$ and the pair $(\phi \wedge \phi_i, s')$ is added to $U_i$.
+For some $a \in \sem{\phi} \cap \sem{\phi_i}$, the set $s'$ is found  such that $row(s_i \cdot a) = row(s')$ and the pair $(\phi \wedge \phi_i, s')$ is added to $U_i$.
 The same is done for $\phi \wedge \neg\phi_i$, assuming $\sem{\phi \wedge \neg\phi_i} \ne \emptyset$.
 If $\sem{\phi_i} \cap \sem{\notop} \ne \emptyset$, then $\notop$ is set to $\notop \wedge \neg\phi_i$. 
 \todo{is there an intuitive explanation of what this algorithm is doing?}
