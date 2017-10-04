@@ -1,0 +1,12 @@
+\begin{tikzpicture}
+    \node[state,accepting] (1) {$\epsilon$};
+    \draw[<-] (1) -- node[above] {$\mathbf{M_7^e}$} ++(-.8cm,0);
+    \node[state] (2) [right of=1] {51};
+    \node[state] (3) [below of=1] {51,0};
+    \path
+    (1) edge [loop above] node {0,101} (1)
+    (1) edge node {51} (2)
+    (2) edge [bend right=20] node {0} (3)
+    (3) edge node {0} (1)
+    ;
+\end{tikzpicture}

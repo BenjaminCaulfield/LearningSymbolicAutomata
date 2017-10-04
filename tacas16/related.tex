@@ -1,0 +1,144 @@
+\section{Related Work}
+
+%Article Aws mentioned~\cite{Nam2006}
+
+
+%\noindent\textbf{Improvements of L$^*$}
+ \alg builds on L$^*$~\cite{angluin87},
+for which many extensions have been proposed,
+the most advanced one being TTT~\cite{Isberner2014,learnlib}.
+%The counterexample processing presented in this paper is simple:
+%\emph{every} prefix is added to the observation table.
+%Subsequently, new states
+%are discovered when the table is not consistent
+%and distinguished by naively adding the obvious distinguishing word
+%to the set $E$. 
+While these extensions could be
+applied to \alg  to potentially improve the
+size of the observation table, the
+number of membership queries is dictated by
+the amount of evidence needed for the partitioning function
+to generalize.
+Our algorithm opens new questions:
+Can we efficiently store intermediate predicates computed by the partitioning functions?
+Can separating predicates be computed incrementally?
+
+%\textit{Oracle-guided synthesis.}
+%Our use of generators is related to the OGIS framework~\cite{JhaS15}, 
+%where automata learning 
+%its termination are 
+% is characterized in terms of the interactions
+%with the oracle and the nature of its counterexamples. 
+%The OGIS model is too weak for symbolic automata.
+%
+%Our work more strongly connects the complexity of learning
+%with the \emph{learnability} of the underlying algebra,
+%which is parametric in the selection of a
+%partitioning function.
+%The OGIS model focuses on a distinction
+%between the expressiveness of infinite-memory and finite-memory
+%systems for learning;
+%in this paper we assume learning is being done
+%only in the context of infinite-memory,
+%but we derive stronger results
+%about the complexity.
+%as opposed to simply whether or not an automaton is learnable.
+
+
+
+%Other works on symbolic automata learning,
+%for example, binary search the example to find
+%an appropriate prefix and suffix such that
+%the prefix is added to the states $S$
+%and the suffix is added to $E$~\cite{ArgyrosSKK16}.
+
+%\noindent\textbf{Automata Learning and Infinite Alphabets}
+Our paper is the first one to provide: 
+\rone an algorithm for learning symbolic automata over arbitrary alphabet theories,
+with  a notion of learnability that is parametric in both the alphabet theory and the 
+oracle (through its projection onto generators), and
+\rtwo compositionality properties that permit combining learnable algebras.
+We detail our comparison against the most relevant works.
+
+
+Isberner et al. augment L$^*$ with abstractions to learn automata over 
+potentially infinite alphabets~\cite{Isberner2013}.
+The algorithm creates abstract symbols to generalize sets of characters,
+and the final automaton operates over these abstract symbols. 
+Abstractions can cause non-determinism that is resolved using refinement operators.
+This approach differs from ours in two aspects. 
+First, while the final output of \alg is a symbolic automaton over the target Boolean algebra,
+the output in~\cite{Isberner2013} is an automaton operating over a separate abstract alphabet that
+is discovered during the learning process and might not necessarily form a Boolean algebra.
+Second, our algorithm enjoys well-defined learnability  and compositionality properties over the input Boolean algebras,
+while the one in~\cite{Isberner2013} does not provide any such properties.
+Maler and Mens~\cite{mens15} instantiate the algorithm proposed in~\cite{Isberner2013} and 
+learn automata over the interval algebra
+for integers and pair of integers.
+%Where we adapt the observation table to
+%contain only a subset of what would be included in $L^*$,
+%they instead use an observation table whose
+%entries are from a \emph{symbolic alphabet},
+%or in other words, their table entries
+%are elements in $\Psi^*$, each accompanied
+%by a \emph{concrete word} in $\Sigma^*$ that
+%served as evidence to create the symbolic word.
+%This formulation of the observation table is possible
+%due to the constraint they make on the oracle:
+%it must provide lexicographically minimal counterexamples.
+%This way, every counterexample uniquely determines
+%the upper or lower bound for a symbolic letter.
+%In our technique, which subsumes their method,
+%the symbolic alphabet (i.e., the  set of relevant predicates) is dynamically
+%generated at each iteration of the algorithm.
+As we discussed throughout the paper, 
+their results are special cases of our formulation. 
+%and,
+In fact, their specialized algorithm %for handling pairs of integers \cite{mens15} provides a modified version of the algorithm
+for learning automata over pairs of integers
+%by constraining that the oracle gives them
+%minimal counterexamples in the partial order of the pairs.
+%Remarkably, 
+is a special case of our Cartesian product of two algebras.
+%of the interval algebra with itself.
+Using our technique, we can also drop the assumption that the
+the oracle provides lexicographically minimal counterexamples,
+which simply causes a change  to the $s_g$ functions and learnability.
+
+Argyros et al.~\cite{ArgyrosSKK16} present an algorithm
+for learning symbolic automata where
+the learnability is parametric with respect
+to a \emph{guardgen} method, which
+is an equivalent formulation of our partitioning
+function.
+Their definition of learnability only captures
+our learning class $\mathcal{C}_\textit{const}^\forall$ and can therefore only 
+describe Boolean algebras operating over finite alphabets or with finitely many predicates.
+Our work introduces generators, proposes
+a deeper analysis of the learnability of a Boolean algebra,
+and shows how learnable algebras can be composed.
+
+
+The Sigma$^*$ algorithm~\cite{BotincanB13} is a practical algorithm for learning
+symbolic transducers, but it does not have learnability guarantees. 
+Other algorithms can learn
+nominal~\cite{nominal} and register automata~\cite{Cassel2016}. 
+In these models, the alphabet is infinite but not structured (i.e., it does not form a Boolean algebra) 
+and characters at different positions can be compared using binary relations
+(typically equality or simple arithmetic relations).
+These models are orthogonal to symbolic automata.
+
+%Learning algorithms have been proposed for nominal automata~\cite{nominal}
+%and for a class of extended finite state machines that is related to register automata
+%in which the set of relations has been extended to include
+%less-than-or-equal as well as equalities over arithmetic expressions
+%of the form $y = x + c$~\cite{Cassel2016}.
+
+
+
+
+\noindent\textbf{Acknowledgements}
+We would like to thank Alexandra Silva,
+Joshua Moerman, and Nimit Singhania
+for their feedback on an
+early version of this paper.

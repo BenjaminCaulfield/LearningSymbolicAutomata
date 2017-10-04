@@ -1,0 +1,58 @@
+\section{Implementation}
+\label{sec:implementation}
+
+We implemented \alg in the open-source Java library
+Symbolic Automata.
+Our modular implementation only requires the programmer to provide
+learnable Boolean algebras as input to the learner;
+we have already implemented the equality and interval algebras
+as well as the disjoint union and product algebras---which
+are implemented as meta-algebras and can be instantiated arbitrarily.
+
+We evaluated our algorithm on the examples  presented by
+Maler and Mens~\cite{mens15}, who
+proposed two extensions of L$^*$
+for learning \SFAs where 1) predicates are
+union of intervals in $\mathbb{N}$, or
+2) predicates are
+union of intervals over $\mathbb{N}\times \mathbb{N}$.
+Their algorithms  assume that the oracle always provides lexicographically minimal counterexamples,
+so that every counterexample identifies a boundary in a partition.
+They evaluate their techniques on two automata: one over 
+the alphabet $\mathbb{N}$ (Ex. 4.1~\cite{mens15})  and one over the alphabet $\mathbb{N} \times \mathbb{N}$
+(Ex. 5.1~\cite{mens15}).
+
+We implemented a partitioning function equivalent to their characterization
+of the interval algebra over $\mathbb{N}$.
+While, to learn automata over $\mathbb{N} \times \mathbb{N}$,
+\cite{mens15} introduces an ad-hoc separate technique that  requires the oracle
+to always give locally minimal counterexamples,
+in our setting, the algebra for pairs can be trivially implemented as
+the Cartesian product of the interval algebra over $\mathbb{N}$ with itself.
+
+We learn the first automaton using 8 equivalence and 23 membership queries,
+while their algorithm only requires 7 and 17, respectively.
+The former difference is due to their algorithm adding a different suffix
+to $E$ than ours, which happens to discover two new states instead of one
+and ultimately saves them an equivalence query.
+The latter is due to a more refined handling of counterexamples (more in our related work).
+Similarly,  we learn the second 
+automaton using 28 equivalence and 43 membership queries,
+while their algorithm only requires
+%We learned this automaton by using the
+%meta-partitioning function for product algebras
+%presented in Section~\ref{sec:comp},
+%which is able to learn the automaton
+18 and 20, respectively.
+In this case, the discrepancy is amplified because
+the algorithm in~\cite{mens15} uses a specialized
+implicit partitioning function that avoids the quadratic
+blowup caused by the Cartesian product construction
+in Theorem~\ref{thm:prod}.
+%suggests that using the meta-algebra should
+%require about quadratically more
+%equivalence queries.
+We implemented an analogous specialized partitioning function
+directly on the product algebra and were able to learn the same example using
+19 equivalence and 30 membership queries.
+

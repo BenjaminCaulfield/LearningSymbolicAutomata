@@ -1,0 +1,46 @@
+\documentclass{llncs}
+\usepackage{llncsdoc}
+\input{preamble}
+
+\begin{document}
+
+\title{Learning Symbolic Automata}
+\author{Samuel Drews and Loris D'Antoni}
+\institute{University of Wisconsin--Madison}
+
+\maketitle
+\begin{abstract}
+Symbolic  automata allow transitions to carry predicates over
+rich alphabet theories, such as linear arithmetic, and therefore extend
+classic automata to operate over infinite alphabets, such as
+the set of rational numbers. 
+%Existing automata algorithms rely
+%on the alphabet being finite, and generalizing them to the symbolic
+%setting is not a trivial task.
+In this paper, we study the foundational problem of learning symbolic automata.
+We first present \alg,
+a symbolic automata extension of Angluin's L$^*$
+algorithm for learning regular languages.
+Then, we define notions of learnability that are parametric in the alphabet theories
+of the symbolic automata and show how these notions nicely compose.
+Specifically, we show that if two alphabet theories are \emph{learnable},
+then the theory accepting the Cartesian product or disjoint union of their alphabets is also learnable.
+Using these properties, we show
+how existing algorithms for learning automata over large alphabets nicely fall in our framework.
+Finally, we implement our algorithm in an open-source library and evaluate it on existing automata learning benchmarks.
+\end{abstract}
+
+\input{intro}
+\input{prelims}
+\input{alg}
+\input{theory}
+\input{bench}
+\input{related}
+
+\appendix
+\input{proofs}
+
+\bibliographystyle{abbrv}
+\bibliography{biblio}
+
+\end{document}

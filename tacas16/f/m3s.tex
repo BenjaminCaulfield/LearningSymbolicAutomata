@@ -1,0 +1,10 @@
+\begin{tikzpicture}
+    \node[state,accepting] (1) {$\epsilon$};
+    \draw[<-] (1) -- node[above] {$\mathbf{M_3}$} ++(-.8cm,0);
+    \node[state] (2) [right of=1] {51};
+    \path
+    (1) edge [loop above] node {$[0,51)$} (1)
+    (1) edge node {$[51,\infty)$} (2)
+    (2) edge [loop above] node {$[0,\infty)$} (2)
+    ;
+\end{tikzpicture}

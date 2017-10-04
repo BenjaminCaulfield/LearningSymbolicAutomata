@@ -1,0 +1,526 @@
+\section{Learning Algorithm}
+\label{sec:learning}
+
+Here we present our algorithm, \alg,
+for learning symbolic automata.
+The premise is that the automaton to be learned,
+called the \emph{target},
+is hidden in a black box,
+so knowledge of it comes from some \emph{oracle}
+that admits two kinds of queries:
+\emph{membership queries} that ask
+whether a word is in the language of the target, and
+\emph{equivalence queries} that ask
+whether a conjectured automaton is equivalent
+to the target---if not, a 
+counterexample is provided.
+\alg, which builds upon L$^*$~\cite{angluin87},
+maintains an \emph{observation table}
+that comprises its knowledge about the target.
+The observation table is used to build the intermediary guesses of the target automaton
+and, eventually, the final automaton.
+It is assumed that the learner knows
+both the alphabet and the Boolean algebra in question. 
+%We assume the learner knows the Boolean algebra over which that automaton operates.
+
+\subsection{Observation Table}
+
+The observation table consists of
+rows of prefixes and columns of suffixes.
+Each entry determines whether the target automaton
+accepts the word formed by concatenating
+the prefix and suffix.
+Intuitively, prefixes
+provide knowledge about words that
+lead to states,
+and suffixes help differentiate those states.
+
+\begin{definition}[Observation Table]
+    An \emph{observation table} $T$ for an \SFA\ $M$
+    is a tuple $(\Sigma, S, R, E, f)$ where
+    $\Sigma$ is a potentially infinite set called the \emph{alphabet};
+    $S,R,E \subset \Sigma^*$ are finite subsets of words:
+        $S$ is called the set of \emph{prefixes}, 
+        $R$ is called the \emph{boundary},
+        and $E$ is called the set of \emph{suffixes};
+    $f : (S \cup R) \cdot E \rightarrow \{0,1\}$
+        is a \emph{classification function}\footnote{We
+        also use $\{-,+\}$ to denote the range of $f$.}
+        such that
+        for a word $w \cdot e \in (S \cup R) \cdot E$,
+        $f(w \cdot e) = 1$ if $w \cdot e \in \mathcal{L}(M)$, and
+        $f(w \cdot e) = 0$ if $w \cdot e \not\in \mathcal{L}(M)$.%
+        \footnote{We use $\cdot$ to denote both the concatenation
+        of strings and its lifting to sets of strings,
+        as is standard.}
+    Additionally, %the following properties hold:
+    \rone $S$ and $R$ are disjoint,
+    \rtwo $S \cup R$ is prefix-closed and $\epsilon \in S$,
+    \rthree for all $s \in S$, there exists a character $a \in \Sigma$ such that $s \cdot a \in R$,
+    and \rfour $\epsilon \in E$.
+\end{definition}
+%
+Table $\mathbf{T_1}$ in Figure~\ref{fig:example} is an example observation table:
+The rows begin with elements of $S \cup R$,
+where the elements in $S$ are shown above the horizontal divider
+and the elements in $R$ below,
+and the columns begin with elements of $E$.
+
+The observation table induces the construction of an automaton.
+For intuition,
+each $s \in S$ corresponds to a state $q$ 
+such that $s$ is a string of moves
+from $q_\text{init}$ to $q$.
+The boundary $R$ gives information about the 
+transitions between states.
+The states are differentiated by the 
+strings in $E$ and the classification function $f$,
+as if there exist $s_1, s_2 \in S$ and $e \in E$
+such that $f(s_1 \cdot e) \neq f(s_2 \cdot e)$,
+then $s_1$ and $s_2$ \emph{behave} differently 
+and must lead to different states.
+We use the notation $\textit{row}(w)$ for $w \in S \cup R$
+to denote the vector indexed by $e \in E$ of $f(w \cdot e)$.
+
+\alg\ manipulates the observation table and eventually
+conjectures an \SFA.  For this to happen, the table must first satisfy certain properties---we
+call such a table \emph{cohesive}---that
+are established through membership queries to the oracle.
+The cohesive observation table is used
+to construct an intermediary automaton
+that is ultimately used to produce a conjectured \SFA.
+An observation table is \emph{closed} 
+if for each $r \in R$ there exists $s \in S$
+such that $\textit{row}(s) = \textit{row}(r)$;
+in other words, each element in the boundary
+corresponds to a state.
+%
+An observation table is \emph{reduced}
+if for all $s_1, s_2 \in S$,
+$\textit{row}(s_1) \neq \textit{row}(s_2)$,
+meaning each state is uniquely characterized by $f$ and $E$.
+%
+An observation table is \emph{consistent}
+if for all $w_1, w_2 \in S \cup R$,
+if $a \in \Sigma^*$ and $w_1 \cdot a, w_2 \cdot a \in S \cup R$
+and $\textit{row}(w_1) = \textit{row}(w_2)$, then
+$\textit{row}(w_1 \cdot a) = \textit{row}(w_2 \cdot a)$.
+%
+A table being consistent means that if the words $w_1$ and $w_2$
+are equivalent according to $f$ and $E$,
+then $w_1 \cdot a$ and $w_2 \cdot a$ ought to be
+equivalent as well, and thus
+there is no evidence to the contrary.\footnote{We
+use $a \in \Sigma^*$ for the definition
+of \emph{consistent}, but since the table
+is prefix-closed by definition,
+it is equivalent to consider
+only single-characters $a \in \Sigma$.}
+%
+An observation table is \emph{evidence-closed}
+if for all $e \in E$ and $s \in S$,
+$s \cdot e \in S \cup R$.
+%
+An observation table is \emph{cohesive}
+if it is closed, reduced, consistent, and evidence-closed.
+
+Consider, for example, the observation tables in Figure~\ref{fig:example}.
+$\mathbf{T_2}$  is not closed, since $\textit{row}(51) = -$
+and there is no $s \in S$ with $\textit{row}(s) = -$.
+Table $\mathbf{T_5}$ is not
+consistent because $\textit{row}(51) = - = \textit{row}(51,0)$,
+but $\textit{row}(51\cdot0) = - \neq + = \textit{row}(51,0\cdot0)$.
+Table $\mathbf{T_{11}}$ is closed, reduced, consistent, and evidence-closed.
+
+If an observation table is cohesive,
+then it admits the construction of an \emph{evidence automaton}
+that classifies words $w \in \Sigma^*$
+equivalently to the observation table's classification function $f$.
+
+\begin{definition}[Evidence Automaton]
+    An evidence automaton is a tuple
+    $(\Sigma, Q, q_\text{init}, F, \Delta)$ where
+    $\Sigma$ is a set;
+    $Q$ is a finite set of states;
+    $q_\text{init} \in Q$ is the \emph{initial state};
+    $F \subseteq Q$ is the set of \emph{final states};
+    $\Delta \subseteq Q \times \Sigma \times Q$ is the \emph{transition relation}.
+\end{definition}
+A move $\rho = (q_1, a, q_2)$,
+also denoted $q_1 \xrightarrow{a} q_2$,
+is a transition from $q_1$ to $q_2$ using the character $a$.  
+A word $w = a_1 a_2 \ldots a_k$ is \emph{accepted at state $q$}
+if for $1 \leq i \leq k$ there exist moves
+$q_{i-1} \xrightarrow{a_i} q_i$ such that $q_0 = q$ and $q_k \in F$.
+Conversely, if that $q_k \not \in F$, 
+then $w$ is \emph{not} accepted at $q$.
+If there is no path through the automaton for $w$,
+then the acceptance is undefined.
+An evidence automaton differs from an \SFA
+in that transitions carry characters in $\Sigma$ instead of predicates
+in a Boolean algebra over the domain $\Sigma$.
+Additionally, the evidence automaton can be deliberately sparse:
+it is not \emph{complete}, and we avoid 
+the notion that a state $q$ does not accept a character $a$
+if there is no $q'$ such that $(q, a, q') \in \Delta$---as
+stated above, such
+a case simply indicates the behavior of $a$ at $q$ is undefined.
+
+Given a cohesive observation table
+$T = (\Sigma, S, R, E, f)$, we build an evidence automaton
+$A = (\Sigma, Q, q_\text{init}, F, \Delta)$
+%over that same alphabet
+as follows:
+for each $s \in S$, we introduce a state $q_s \in Q$. %, and
+$q_\text{init}$ is assigned to $q_\epsilon$.
+The final state set $F$ contains   all $q_s$ such that $s \in S$ and $f(s) = 1$.
+%
+Since the observation table is closed and reduced,
+there exists a function $g : S \cup R \rightarrow S$
+such that $g(w) = s$ if and only if $row(w) = row(s)$.
+This function allows us to define the transition relation of $A$:
+if $w \cdot a \in S \cup R$ for $w \in \Sigma^*$ and $a \in \Sigma$, then 
+$(q_{g(w)}, a, q_{g(w \cdot a)}) \in \Delta$.
+%
+In Figure~\ref{fig:example}, the automaton $\mathbf{M_{1}^e}$ (resp $\mathbf{M_{11}^e}$) is the evidence automaton 
+corresponding to cohesive table $\mathbf{T_{1}}$ (resp. $\mathbf{T_{11}}$).
+
+
+\begin{lemma}[Evidence compatibility]\label{thm:evid}
+    Given a cohesive observation table $T = (\Sigma, S, R, E, f)$,
+    if $M_\text{evid} = (\Sigma, Q, q_\text{init}, F, \Delta)$ 
+    is the evidence automaton construction of $T$,
+    then for all $w \cdot e \in (S \cup R) \cdot E$,
+    if $f(w \cdot e) = 1$ then $M_\text{evid}$ accepts $w \cdot e$, and
+    if $f(w \cdot e) = 0$ then $M_\text{evid}$ does not accept $w \cdot e$.
+\end{lemma}
+
+\subsection{Separating Predicates}
+
+Given an evidence automaton with an alphabet $\Sigma$,
+we require two pieces to build an \SFA:
+\rone a Boolean algebra $\mathcal{A}$ with $\mathfrak{D}_\mathcal{A} = \Sigma$,
+and \rtwo a partitioning function $P$ for $\mathcal{A}$, which we define below.
+%
+This latter component,
+the partitioning function,
+is the key insight to \alg's
+generalization of L$^*$.
+
+\begin{definition}[Partitioning function]
+    A \emph{partitioning function} for a Boolean algebra
+    $\mathcal{A} = (\mathfrak{D}, \Psi, \den{\_}, \bot, \top, \vee, \wedge, \neg)$
+    is a function $P : (2^\mathfrak{D})^* \rightarrow \Psi^*$
+    that takes as input a list $L_\mathfrak{D} = \ell_1 \ldots \ell_k$
+    of disjoint sets of elements in $\mathfrak{D}$,
+    and returns a parallel list $L_\Psi = \varphi_1 \ldots \varphi_k$ of predicates in $\Psi$ such that
+    \begin{itemize}
+        \item $\bigvee_{\varphi_i \in L_\Psi} \varphi_i = \top$
+        \item $\varphi_i \wedge \varphi_j = \bot$ for all $\varphi_i, \varphi_j \in L_\Psi$ with $i \neq j$
+        \item for each $\ell_i \in L_\mathfrak{D}$ corresponding to $\varphi_i \in L_\Psi$,
+            all $a \in \ell_i$ are such that $a \in \den{\varphi_i}$.
+    \end{itemize}
+\end{definition}
+
+\begin{example}[Equality Algebra Separating Predicates]
+    We can construct a partitioning function for the equality algebra:
+    given a list
+    $L_\mathfrak{D} = \ell_1 \ldots \ell_k$
+    we construct a list $L_\Psi = \varphi_1 \ldots \varphi_k$
+    where each $\varphi_i$ has $\den{\varphi_i} = \ell_i$.
+    We choose a $j$ with maximal $|\ell_j|$
+    and update $\varphi_j \gets \varphi_j \vee \bigwedge_{1 \leq i \leq k} \neg \varphi_i$.
+    In the concrete case of $\mathfrak{D} = \mathbb{Z}$ 
+    and $L_\mathfrak{D} = [\{2\}, \{3\}, \emptyset, \{0, 5\}]$,
+    the partitioning function would produce (after simplification)
+    %$L_\Psi = [a = 2, a = 3, \bot, a \neq 2 \wedge a \neq 3]$.
+    $L_\Psi = [\lambda a \ldotp a = 2, \lambda a \ldotp a = 3, \bot, \lambda a \ldotp a \neq 2 \wedge a \neq 3]$.
+\end{example}
+
+At a high level, as long as the \SFA is consistent with the evidence automaton,
+it will be consistent with the observation table.
+The words in the remainder of $\Sigma^*$---for which 
+the evidence automaton has unspecified classification---can be
+assigned to paths in a largely arbitrary manner.
+The partitioning function handles generalizing the concrete evidence
+by creating \emph{separating predicates}, 
+in effect specifying the behavior for the remaining words.
+Ideally, this generalization allows an automaton to be learned
+with a relatively small observation table,
+even if the alphabet is large---or even infinite.
+
+Given an evidence automaton $A = (\Sigma, Q, q_\text{init}, F, \Delta)$,
+a Boolean algebra $\mathcal{A}$ with domain $\Sigma$, and an 
+appropriate partitioning function $P$,
+we build an \SFA $M = (\mathcal{A}, Q, q_\text{init}, F, \Delta_M)$
+using that Boolean algebra and that exact configuration of states.
+All that remains is the construction of the transition relation $\Delta_M$.
+
+For each  $q \in Q$, we perform the following.
+We gather all evidence transitions out of $q$
+into a set $\Delta_q = \{(q, a, q') \in \Delta\}$
+and construct a list $L_\Sigma$ indexed over the states $q_i \in Q$,
+where each set in $L_\Sigma$ is $\ell_i = \{a \mid (q, a, q_i) \in \Delta_q\}$.
+We apply the partitioning function to 
+get a list of separating predicates
+$L_{\Psi_\mathcal{A}} = P(L_\Sigma)$
+which is also indexed over $q_i \in Q$,
+and add $(q, \varphi_i, q_i)$ to $\Delta_M$ for each $\varphi_i \in L_{\Psi_\mathcal{A}}$.
+
+\begin{lemma}[\SFA evidence compatibility]\label{thm:evid2}
+    Given a cohesive observation table $T = (\Sigma, S, R, E, F)$,
+    if $M_\text{evid} = (\Sigma, Q, q_\text{init}, F, \Delta)$
+    is the evidence automaton construction of $T$, and
+    $M = (\mathcal{A}, Q, q_\text{init}, F, \Delta)$
+    is produced from $M_\text{evid}$ using a partitioning function,
+    then for all $w \cdot e \in (S \cup R) \cdot E$,
+    if $f(w \cdot e) = 1$ then $w \cdot e \in \mathcal{L}(M)$, and
+    if $f(w \cdot e) = 0$ then $w \cdot e \not \in \mathcal{L}(M)$.
+\end{lemma}
+
+An example observation table, its corresponding evidence automaton, 
+and a resultant \SFA are shown in the last row of Figure~\ref{fig:example}.
+
+
+
+\subsection{Algorithm Description}
+
+We now present a description of \alg and an example execution.
+The algorithm begins by initializing an observation table
+with $S = \{\epsilon\}$, $R = \{a\}$ for an arbitrary $a \in \Sigma$,
+and $E = \{\epsilon\}$.
+$f$ is initially undefined.
+The knowledge of the table
+is grown using the operations
+\emph{fill}, \emph{close}, \emph{evidence-close}, and \emph{make-consistent}.
+
+The operation \emph{fill} asks a membership query
+for all $w \cdot e \in (S \cup R) \cdot E$ for which
+$f$ is undefined and then adds those results to $f$;
+in this way, it ensures $f$ is defined over the 
+entire domain of the observation table.
+
+The operation \emph{close} checks for
+the existence of an $r \in R$ such that
+for all $s \in S$, $\textit{row}(r) \neq \textit{row}(s)$.
+Such an $r$ is moved from $R$ to $S$,
+and $r \cdot a$ is added to $R$
+for some arbitrary $a \in \Sigma$.
+
+The operation \emph{evidence-close} ensures
+for all $e \in E$ and $s \in S$ that
+$s \cdot e \in S \cup R$
+by adding to $R$ all $s \cdot e$
+that are not.
+It also adds to $R$ any necessary prefixes
+so that $S \cup R$ is prefix-closed.
+
+The operation \emph{make-consistent} operates as follows:
+if there exist $w_1, w_2 \in S \cup R$
+and $w_1 \cdot a, w_2 \cdot a \in S \cup R$
+for some $a \in \Sigma$
+such that $\textit{row}(w_1) = \textit{row}(w_2)$
+but $\textit{row}(w_1 \cdot a) \neq \textit{row}(w_2 \cdot a)$,
+then $w_1$ and $w_2$ actually lead to different states;
+using the $e \in E$ such that $f(w_1 \cdot a \cdot e) \neq f(w_2 \cdot a \cdot e)$,
+it is clear $a \cdot e$ thus differentiates those states.
+Accordingly, $a \cdot e$ is added to $E$.
+Additionally, we then add
+$(\{u_2 \cdot b \mid u_1 \cdot b \in S \cup R\} \cup \{u_1 \cdot b \mid u_2 \cdot b \in S \cup R\}) \setminus S$
+to $R$ for all pairs $u_1, u_2 \in S \cup R$ such that before adding $e$ to $E$,
+$\textit{row}(u_1) = \textit{row}(u_2)$,
+but $f(u_1 \cdot e) \neq f(u_2 \cdot e)$
+(this includes the pair $w_1, w_2$).
+This operation \emph{distributes} the old evidence leading
+    out of the amalgamated state between the newly differentiated states,
+simplifying the constructions in Section~\ref{sec:learnability}.
+
+Upon receiving a counterexample $c \in \Sigma^*$ from 
+an equivalence query sent to the oracle,
+all prefixes of $c$ are added to $R$
+(except those already present in $S$).
+There are two cases for a counterexample:
+one of the predicates in the \SFA needs refinement,
+which is facilitated by adding those new words to the table,
+or a new state must exist in the automaton,
+which is handled by \emph{make-consistent}.
+
+\algrenewcommand\algorithmicindent{1.0em}
+\newcommand\NoThen{\renewcommand\algorithmicthen{}}
+\algtext*{EndWhile}% Remove "end while" text
+\algtext*{EndIf}
+\algtext*{EndProcedure}
+\begin{figure}[!t]
+%\begin{minipage}{0.5\textwidth}
+%%\begin{algorithm}[t]
+%%    \caption{Learning algorithm}
+%    \scriptsize
+%    \begin{algorithmic}
+%       \Procedure{\alg}{$M$}
+%        \State initialize table $T$
+%        \Repeat
+%        \While{$T$ is not cohesive}
+%        \State \emph{make-consistent} $T$
+%        \State \emph{evidence-close} $T$
+%        \State \emph{close} $T$
+%        \EndWhile
+%        \State build evidence automaton $M_\textit{evid}$ from $T$
+%        \State build \SFA $M$ from $M_\textit{evid}$
+%        \If{$M$ $\neq$ target automaton} 
+%        \State process counterexample
+%        \EndIf
+%        \Until{$M$ $=$ target automaton}
+%        \EndProcedure
+%    \end{algorithmic}
+%%\end{algorithm}
+%\end{minipage}
+%\begin{minipage}{0.5\textwidth}
+\centering
+\tikzstyle{block} = [rectangle, draw, text width=6em, text centered, rounded corners, minimum height =4em]
+\begin{tikzpicture}[->,>=stealth',auto,node distance = 3.5cm]
+    \node [draw=none] (0) {};
+    \node [block] (1) [right of=0] {is table cohesive?};
+    \node [block] (2) [right of=1] {build evidence automaton};
+    \node [block] (3) [right of=2,xshift=1.5cm] {build \SFA; is equivalent?};
+    \node [block] (4) [right of=3] {done};
+    \path 
+    (0) edge node[align=center] {initialize\\table} (1)
+    (1) edge node {yes} (2)
+    (1) edge [loop above] node[align=center] {no:\\membership queries} (1)
+    (2) edge node[align=center] {partitioning\\function} (3)
+    (3) edge node {yes} (4)
+    (3) edge [bend left] node[align=center] {no:\\add counterexample to table} (1)
+    ;
+\end{tikzpicture}
+%\end{minipage}
+%\caption{Pseudocode of the learning algorithm \alg (left) and its overview (right).\label{alg:learn}}
+\caption{Overview of the learning algorithm \alg.\label{alg:learn}}
+\end{figure}
+
+Figure~\ref{alg:learn} shows an overview of the learning algorithm:
+after the table is initialized,
+the operations \emph{make-consistent},
+\emph{evidence-close}, and \emph{close}
+are applied until the table is cohesive.\footnote{
+It is an invariant of the initialization of the table
+and of the operations applied to it
+that the observation table is always reduced.}
+(\emph{Fill} is applied throughout whenever
+a change is made to the table.)
+An \SFA $M$ is then conjectured from the table,
+and an equivalence query is performed:
+if $M$ is equivalent to the target automaton,
+then the algorithm terminates.
+Otherwise, a counterexample is produced and processed,
+and the procedure repeats.
+
+\alg can be thought of as a lazily-evaluated version
+of L$^*$ with the additional generalization step,
+and therefore it maintains the property of L$^*$
+that the learned automaton has a minimal
+number of states.
+
+\begin{theorem}[\alg minimality]\label{thm:min}
+    When \alg terminates it returns a minimal \SFA.
+\end{theorem}
+
+\input{fig}
+
+\subsection{Worked Example}\label{subsec:ex}
+Suppose we invoke \alg\ to learn the automaton
+over non-negative integers that accepts
+all words \emph{except} those that
+contain a number between 51 and 100 that
+is not immediately followed by two numbers
+between 0 and 20.
+
+The Boolean algebra we use is the union
+of left-closed right-open intervals.
+We fix a partitioning function $P$ that assumes
+that if $a \in \ell$, $b \in \ell'$,
+and there are no $c$ in the input sets
+such that $a < c < b$, then the whole
+interval $[a,b)$ behaves equivalently to $a$.
+For example,
+$P(\{0\},\{10\}) = [0,10), [10,\infty)$
+and
+$P(\{0,20\},\{10\}) = [0,10)\cup[20,\infty), [10,\infty)$.
+
+The trace of the algorithm is illustrated
+in Figure~\ref{fig:example}.
+\alg\ begins by initializing an observation table
+so that $S = \{\epsilon\}$, $R = \{0\}$
+(the 0 is an arbitrary character from $\Sigma$
+and is used purely so that the table contains
+$\epsilon \cdot a$ for some $a$),
+and $E = \{\epsilon\}$.
+The appropriate membership queries are
+made to the oracle, resulting in the table $\mathbf{T_1}$.
+$\mathbf{T_1}$ is cohesive, so it is used to construct the evidence automaton
+$\mathbf{M_1^e}$, and by calling the partitioning function
+$P$ on the outgoing transitions of each state in $\mathbf{M_1^e}$---in
+this case just $P(\{0\}) = [0,\infty)$---the
+\SFA\ $\mathbf{M_1}$ is conjectured.
+The oracle is given $\mathbf{M_1}$ as an equivalence query,
+and it returns the single-character word 51
+as a counterexample.
+51 is added to $R$ in the observation table,
+as would all of its prefixes if it were a word of length
+greater than one,
+and a membership query is asked for $51\cdot\epsilon$,
+resulting in table $\mathbf{T_2}$.
+
+$\mathbf{T_2}$ is not closed, since $\textit{row}(51) = -$
+and there is no $s \in S$ with $\textit{row}(s) = -$.
+Accordingly, 51 represents a path to a new state,
+so it is moved from $S$ to $R$, and a continuation
+$51,0$ is added to $R$.  This produces
+table $\mathbf{T_3}$, which is now cohesive
+and thus admits the construction
+of the evidence automaton $\mathbf{M_3^e}$
+and ultimately the \SFA\ $\mathbf{M_3}$
+through the use of the partitioning function:
+for example, for the outgoing transitions of the initial state,
+$P(\{0\},\{51\}) = [0,51), [51,\infty)$.
+An equivalence query sent to the oracle
+returns the counterexample of 101.
+
+Adding 101 to $R$ results in the
+cohesive table $\mathbf{T_4}$ and the \SFA\ $\mathbf{M_4}$,
+and the oracle provides the counterexample $51,0,0$.
+$51,0,0$ is added to $R$ (all of its prefixes
+are already present in $S \cup R$),
+resulting in the table $\mathbf{T_5}$ which is not
+consistent:
+observe that $\textit{row}(51) = - = \textit{row}(51,0)$,
+but $\textit{row}(51\cdot0) = - \neq + = \textit{row}(51,0\cdot0)$.
+This means that $51$ and $51,0$ actually lead
+to different states, which will be addressed in two stages.
+First, following the rule \emph{make-consistent}, since
+$f(51\cdot0\cdot\epsilon) \neq f(51,0\cdot0\cdot\epsilon)$,
+we add $0\cdot\epsilon$ to $E$ to distinguish
+the states led to by $51$ and $51,0$,
+which produces table $\mathbf{T_6}$.
+Applying \emph{close} to $\mathbf{T_6}$ results in $\mathbf{T_7}$,
+which is then cohesive
+(we added an element to $E$, which would
+normally require applying \emph{evidence-close},
+but it happens to be that $\mathbf{T_7}$ is already
+evidence-closed) and produces
+an \SFA\ $\mathbf{M_7}$.
+The counterexample $51,21,0$
+requires adding it as well as the prefix $51,21$
+to $R$, producing table $\mathbf{T_8}$.
+
+$\mathbf{T_8}$ is also inconsistent,
+since $\textit{row}(51) = -,- = \textit{row}(51,21)$
+but $\textit{row}(51\cdot0) = -,+ \neq -,- = \textit{row}(51,21\cdot0)$.
+Since $f(51\cdot0\cdot0) \neq f(51,21\cdot0\cdot0)$,
+we add $0\cdot0$ to $E$
+to distinguish $51$ from $51,21$,
+and evidence-close the table to get $\mathbf{T_9}$.
+Closing and evidence-closing this table results in $\mathbf{T_{10}}$,
+the conjecture $\mathbf{M_{10}}$, the counterexample
+$51,0,21$, the table $\mathbf{T_{11}}$, and finally
+the automaton $\mathbf{M_{11}}$ which passes
+the equivalence query.

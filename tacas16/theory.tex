@@ -1,0 +1,441 @@
+\section{Learnability and its Properties}
+\label{sec:learnability}
+
+Whether an \SFA can be learned and, if so, the complexity of learning that \SFA,
+depends on a more fundamental property concerning the \emph{learnability}
+of the underlying Boolean algebra.
+In \alg,
+this notion of learnability determines the
+complexity of the algorithm.
+We first provide a definition for an algebra's learnability
+with respect to the inputs given to a partitioning function
+and then connect these inputs to the queries given to the oracle
+during the learning algorithm.
+
+\subsection{Learnability of a Boolean Algebra}
+
+Fix a partitioning function $P$ over a Boolean algebra $\mathcal{A}$.
+Let $C$ denote a concept class for which each concept $c \in C$ is a finite partition
+of $\mathfrak{D}_\mathcal{A}$ using predicates in $\Psi_\mathcal{A}$,
+and let $G$ denote the set of \emph{generators} which, informally,
+provide a sequence of counterexamples---elements
+in $\mathfrak{D}_\mathcal{A}$---to update the sets given to $P$.
+We analyze how many times a generator $g$ must make an update
+before $P$ learns a desired partition.
+A generator $g \in G$ can be thought of as a function
+that takes as input
+a tuple $(L, c_\text{guess}, c_\text{target})$---where
+$L$ is the list of subsets of $\mathfrak{D}_\mathcal{A}$
+given as input to $P$,
+$c_\text{guess} \in C$ is a partition of $\mathfrak{D}_\mathcal{A}$
+consistent with $L$, and
+$c_\text{target} \in C$ is the target partition---and
+outputs a new list $L'$ of $\mathfrak{D}_\mathcal{A}$-subsets.
+We say $g$ provides sets to $P$ to refer to
+the iterative process in which
+$L_0 = \lbrack \emptyset \rbrack$ and
+$L_{i+1} = g(L_i, P(L_i), c_\text{target})$.
+Intuitively, a generator iteratively updates a list of sets
+to be given to a partitioning function so that
+the output of that function approaches the target partition.
+
+Additionally, the generators are subject to the following restrictions
+that ensure a sense of monotonicity:
+%
+\rone the output $L'$ is \emph{greater than}
+the input $L$ in the sense that 
+$\forall a \in \mathfrak{D}_\mathcal{A}
+\lbrack (\exists \ell \in L \ldotp a \in \ell) \rightarrow
+(\exists \ell' \in L' \ldotp a \in \ell')\rbrack$
+(a character present in the input
+will always be present in future iterations);
+\rtwo if $a_1 \in \ell_i \in L$ and $a_2 \in \ell_j \in L$
+and $i \neq j$, then
+it cannot be that there is some $\ell' \in L'$ and
+both $a_1 \in \ell'$ and $a_2 \in \ell'$
+(if the generator says two elements belong to different
+sets in a partition, that must be true for all future iterations);
+and \rthree either
+the number of sets in $L'$ is larger than
+the number of sets in $L$, or
+at least one $a \in \mathfrak{D}_\mathcal{A}$
+that was not present in any $\ell \in L$ is present in some $\ell' \in L'$
+%
+Also, the inputs to the generator are subject to a notion of consistency:
+if $a_1 \in \ell_i \in L$ and $a_2 \in \ell_j \in L$
+such that $i \neq j$, then there is no
+$\varphi \in c_\text{target}$ such that
+$\{a_1, a_2\} \subseteq \den{\varphi}$.
+
+This definition of a generator exactly captures
+the high-level process of updating the observation
+table in our algorithm via queries to the oracle
+and \emph{projecting} those changes onto
+the individual lists of sets that are given
+to the partitioning function for the creation
+of the conjectured \SFA.
+For example, in Figure~\ref{fig:example},
+the evidence for the outgoing transitions
+of the $\epsilon$-state is provided by a generator such that
+$L_1 = \lbrack\{0\}\rbrack$,
+$L_2 = \lbrack\{0\}, \{51\}\rbrack$,
+and $L_3 = \lbrack\{0,101\},\{51\}\rbrack$.
+Below we will formalize
+a notion of learnability with respect
+to these generators, and it will thus
+bear a close correspondence to the
+complexity of learning an \SFA.
+
+\begin{definition}[$s_g$-learnability]
+    Given a Boolean algebra $\mathcal{A}$,
+    a partitioning function $P$, and
+    a generator $g \in G$,
+    we say the pair $(\mathcal{A}, P)$ is \emph{$s_g$-learnable}
+    if there exists an implicit function
+    $s_g : C \rightarrow \mathbb{N}$
+    such that $P$ needs as input a list of sets,
+    provided by $g$,
+    with total size at most $s_g(c)$
+    to discover a target partition $c \in C$.
+    Furthermore, we say $\mathcal{A}$ itself
+    is $s_g$-learnable if there exists
+    a partitioning function $P$
+    such that $(\mathcal{A}, P)$ is $s_g$-learnable.
+\end{definition}
+
+We also classify $\mathcal{A}$
+as belonging to a \emph{learning class}
+that depends on these $s_g$ functions---but
+first we need an auxiliary notion of the \emph{size}
+of a partition.
+
+\begin{definition}[DNF-Size of a partition]
+    Let $C$ be the set of partitions of $\mathcal{A}$.
+    Each $c \in C$ is a list $\varphi_1, \ldots, \varphi_n$:
+    we can expand each $\varphi_i$ to a minimal
+    disjunctive-normal-form formula $\bigvee_j \psi_{i,j}$
+    such that
+    $c' = \psi_{1,1}, \ldots, \psi_{1,m_1}, \ldots, \psi_{n,1}, \ldots, \psi_{n,m_n}$
+    is a partition of $\mathcal{A}$ that is
+    at least as fine as $c$.
+    We say the \emph{DNF-size} of $c$
+    is the length of the list of such a minimal $c'$.
+\end{definition}
+
+\begin{example}
+    The partition $\{x < 5 \lor x > 10, 5 \leq x \land x \leq 10\}$
+    has DNF-size 3.
+\end{example}
+
+\begin{definition}[Learning Class]
+    For a fixed Boolean algebra $\mathcal{A}$
+    if there exists a $g \in G$ such that
+    $\mathcal{A}$ is $s_g$-learnable, then
+    \begin{itemize}
+        \item if $s_g$ is a constant function,
+            i.e. $\exists k \forall c \ldotp s_g(c) = k$,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{const}^\exists$
+        \item if $s_g$ is a function only of the DNF-size of $c$,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{size}^\exists$
+        \item if $s_g$ is otherwise unconstrained,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{finite}^\exists$
+    \end{itemize}
+
+    Additionally, for some fixed partitioning function $P$,
+    if for all $g \in G$,
+    $(\mathcal{A}, P)$ is $s_g$-learnable, then
+    \begin{itemize}
+        \item if each $s_g$ is a constant function,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{const}^\forall$
+        \item if each $s_g$ is a function only of the DNF-size of $c$,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{size}^\forall$
+        \item if each $s_g$ is otherwise unconstrained,
+            we say $\mathcal{A} \in \mathcal{C}_\textit{finite}^\forall$
+    \end{itemize}
+\end{definition}
+%
+
+\begin{wrapfigure}{r}{0.35\textwidth}
+\vspace{-4mm}
+\centering
+\begin{tabular}{l l l l l}
+    $\mathcal{C}_\textit{const}^\forall$ & $\subseteq$~ & $\mathcal{C}_\textit{size}^\forall$ & $\subseteq$~ & $\mathcal{C}_\textit{finite}^\forall$ \\
+    ~\rotatebox[origin=c]{-90}{$\subseteq$} & & ~\rotatebox[origin=c]{-90}{$\subseteq$} & & ~\rotatebox[origin=c]{-90}{$\subseteq$} \\
+    $\mathcal{C}_\textit{const}^\exists$ & $\subseteq$~ & $\mathcal{C}_\textit{size}^\exists$ & $\subseteq$~ & $\mathcal{C}_\textit{finite}^\exists$ \\
+\end{tabular}
+\caption{Learning classes. \label{fig:relation}}
+\vspace{-5mm}
+\end{wrapfigure}
+Observe that learning classes are partially-ordered by the subset relation
+shown in Figure~\ref{fig:relation}.
+This categorization is convenient for reasoning about
+different instantiations of domains and oracles.
+For example:
+%
+\rone When $\mathcal{A} \in \mathcal{C}_\textit{const}^\forall$, learning a
+partition over $\mathfrak{D}_\mathcal{A}$ is equivalent
+to the machine-learning notion of a mistake-bound~\cite{littlestone88}.
+%
+\rtwo The equality algebra for any finite alphabet is in $\mathcal{C}_\textit{const}^\forall$.
+%
+\rthree The interval algebra over the integers or rationals
+is in $\mathcal{C}_\textit{size}^\exists$;
+if the oracle provides lexicographically minimal counterexamples,
+the number of times the partitions must be updated
+through the generator is determined by the number of
+connected regions in the partition,
+as illustrated in~\cite{mens15}
+and as applicable for Figure~\ref{fig:example}.
+%
+The integer case is also in $\mathcal{C}_\textit{finite}^\forall$,
+since after arbitrary counterexamples are found beyond the least
+and greatest finite bounds in the partition, $m$ and $M$ respectively,
+at most $M - m$ more counterexamples are required.
+%
+\rfour Using enumeration, linear rational arithmetic is in $\mathcal{C}_\textit{finite}^\forall$.
+%
+
+
+Since for each state in an \SFA, the set of outgoing transitions
+forms a partition of the alphabet, i.e. a concept in $C$,
+the number of counterexamples
+needed to learn the entire automaton is related to
+the sum of $s_g(c)$ for each state's outgoing transitions.
+Hence, the complexity of learning depends on
+\rone the choice of the partitioning function and, potentially,
+\rtwo the quality of counterexamples provided by the oracle.
+
+\begin{theorem}[SFA Learnability]\label{thm:learn}
+    If $M$ is an \SFA over a learnable Boolean algebra $\mathcal{A}$ with $n$ states,
+    then the number of equivalence queries
+    needed to learn $M$ is bounded above by $n^2 \sum_{q_i \in Q} s_{g_i}(c_i)$,
+    where $s_{g_i}$ is the projection of the oracle
+    onto learning the partition $c_i$
+    for the outgoing transitions of state $q_i$.
+\end{theorem}
+
+The notion of an algebra's learning class can have powerful ramifications
+in conjuction with the result of Theorem~\ref{thm:learn}.
+For example, if an \SFA uses a Boolean algebra contained
+in $\mathcal{C}_\textit{finite}^\forall$, then the use
+of the appropriate partitioning function guarantees termination
+of the learning algorithm, independent of the quality of counterexamples
+produced from equivalence queries.
+%The automaton $\mathbf{M_{11}}$ from Figure~\ref{fig:example}
+%learned with the partitioning function from Section~\ref{subsec:ex}
+%and an oracle that provides minimal counterexamples instantitates
+%$\mathcal{C}_\textit{size}^\exists$, and for this automaton
+%$n = 4$ and $\sum_i s_{g_i}(c_i) = 8$; consequently,
+%the number of equivalence queries utilized by the algorithm
+%is pessimistically bounded from above by 128.
+%%%%the bound is potentially taken from the max, not the sum
+Investigating which of the subset relations in Figure~\ref{fig:relation}
+are strict subsets, as well as what (if any) algebras fall outside
+of $\mathcal{C}_\textit{finite}^\exists$ are interesting
+future problems.
+
+\subsection{Composing Learnable Algebras}\label{sec:comp}
+
+The definition of learnability described prior has
+the remarkable property that it is preserved by some 
+constructions that combine Boolean algebras,
+such as the \emph{disjoint union} and the \emph{cartesian product}.
+In these cases, a partitioning function for the 
+resultant algebra can be constructed by using partitioning
+functions for the original algebras as black boxes;
+This allows us to phrase
+the learnability of the constructed algebra
+in terms of the learnability of the individual algebras.
+
+\begin{definition}[Disjoint Union Algebra]
+    Let $\mathcal{A}_1, \mathcal{A}_2$ be boolean algebras.
+    Their \emph{disjoint union algebra}
+    $\mathcal{A}_\uplus = (\mathfrak{D}, \Psi, \den{\_}, \bot, \top, \vee, \wedge, \neg)$,
+    which we denote $\mathcal{A}_\uplus = \mathcal{A}_1 \uplus \mathcal{A}_2$,
+    is constructed as follows:\footnote{In our definition, we use
+    $\mathfrak{D}_{\mathcal{A}_1} \uplus \mathfrak{D}_{\mathcal{A}_2}$
+    to denote the disjoint union of sets; rigorously, 
+    when the sets are not already disjoint,
+    this is constructed by taking
+    $(\mathfrak{D}_{\mathcal{A}_1} \times \{1\}) \cup
+    (\mathfrak{D}_{\mathcal{A}_2} \times \{2\})$ and lifting
+    all the remaining constructs appropriately.}
+    $$
+    \begin{array}{c}
+        \mathfrak{D} = \mathfrak{D}_{\mathcal{A}_1} \uplus \mathfrak{D}_{\mathcal{A}_2} \qquad
+        \Psi = \Psi_{\mathcal{A}_1} \times \Psi_{\mathcal{A}_2} \qquad
+        \den{(\varphi_{\mathcal{A}_1}, \varphi_{\mathcal{A}_2})} = 
+            \den{\varphi_{\mathcal{A}_1}}_{\mathcal{A}_1} \uplus
+            \den{\varphi_{\mathcal{A}_2}}_{\mathcal{A}_2} \\
+        \bot = (\bot_{\mathcal{A}_1}, \bot_{\mathcal{A}_2}) \qquad
+        \top = (\top_{\mathcal{A}_1}, \top_{\mathcal{A}_2}) \qquad
+        \neg (\varphi_{\mathcal{A}_1}, \varphi_{\mathcal{A}_2}) =
+            (\neg_{\mathcal{A}_1} \varphi_{\mathcal{A}_1},
+            \neg_{\mathcal{A}_2} \varphi_{\mathcal{A}_2})\\
+        (\varphi_{\mathcal{A}_1}, \varphi_{\mathcal{A}_2}) \vee
+            (\varphi_{\mathcal{A}_1}', \varphi_{\mathcal{A}_2}') = 
+            ((\varphi_{\mathcal{A}_1} \vee_{\mathcal{A}_1} \varphi_{\mathcal{A}_1}'),
+            (\varphi_{\mathcal{A}_2} \vee_{\mathcal{A}_2} \varphi_{\mathcal{A}_2}')) \\
+        (\varphi_{\mathcal{A}_1}, \varphi_{\mathcal{A}_2}) \wedge
+            (\varphi_{\mathcal{A}_1}', \varphi_{\mathcal{A}_2}') = 
+            ((\varphi_{\mathcal{A}_1} \wedge_{\mathcal{A}_1} \varphi_{\mathcal{A}_1}'),
+            (\varphi_{\mathcal{A}_2} \wedge_{\mathcal{A}_2} \varphi_{\mathcal{A}_2}')) \\        
+    \end{array}
+    $$
+\end{definition}
+
+If $\mathcal{A}_1$ has partitioning function $P_1$
+and $\mathcal{A}_2$ has partitioning function $P_2$,
+then we can construct a partitioning function $P_\uplus$
+for $\mathcal{A}_\uplus = \mathcal{A}_1 \uplus \mathcal{A}_2$:
+$P_\uplus$ takes as input a list $L_\uplus$ of sets
+where each set $\ell_{\uplus_i} \subset \mathfrak{D}_{\mathcal{A}_1} \uplus \mathfrak{D}_{\mathcal{A}_2}$.
+We decompose $L_\uplus$ into $L_{\mathfrak{D}_1}$ and $L_{\mathfrak{D}_2}$, two lists of sets
+of $\ell_{1_i} \subset \mathfrak{D}_{\mathcal{A}_1}$
+and $\ell_{2_i} \subset \mathfrak{D}_{\mathcal{A}_2}$, respectively:
+for each $a \in \ell_{\uplus_i}$, 
+if $a \in \mathfrak{D}_{\mathcal{A}_1}$, then we add $a$ to $\ell_{1_i}$, and otherwise
+if $a \in \mathfrak{D}_{\mathcal{A}_2}$, then we add $a$ to $\ell_{2_i}$.
+We obtain $L_{\Psi_1} = P_1(L_{\mathfrak{D}_1})$
+and $L_{\Psi_2} = P_2(L_{\mathfrak{D}_2})$.
+We construct $L_{\Psi_\uplus}$ by taking
+$\varphi_{\uplus_i} = (\varphi_{1_i}, \varphi_{2_i})$ for all $i$,
+return $L_{\Psi_\uplus}$, and terminate.
+
+The disjoint union is useful since, for example,
+we can represent arbitrary intervals over the integers
+as the disjoint union of \rone intervals over non-negative integers
+and \rtwo intervals over negative integers.
+In other words, a partitioning function suited
+for a single notion of $\infty$ can be extended
+to capture two.
+
+\begin{theorem}[Disjoint Union Algebra Learnability]\label{thm:du}
+    Given Boolean algebras $\mathcal{A}_1, \mathcal{A}_2$
+    with partitioning functions $P_1, P_2$,
+    $(\mathcal{A}_1, P_1)$ is $s_{g_1}$-learnable
+    and $(\mathcal{A}_2, P_2)$ is $s_{g_2}$-learnable
+    if and only if there exists $g_\uplus$ such that their disjoint union algebra
+    $(\mathcal{A}_\uplus, P_\uplus)$ is $s_{g_\uplus}$-learnable,
+    where $s_{g_\uplus}(c) = s_{g_1}(c_1) + s_{g_2}(c_2)$
+    and $c_1$ and $c_2$ are the restrictions of $c$
+    to $\mathfrak{D}_{\mathcal{A}_1}$ and $\mathfrak{D}_{\mathcal{A}_2}$,
+    respectively.
+\end{theorem}
+
+\begin{corollary}\label{thm:ducor}
+    If $\mathcal{A}_1$
+    and $\mathcal{A}_2$ are in learning class $\mathcal{C}$,
+    then their disjoint union $\mathcal{A}_\uplus$ is also in learning class
+    $\mathcal{C}$.
+\end{corollary}
+
+We present a similar construction for the \emph{product}
+of two Boolean algebras.
+
+\begin{definition}[Product Algebra]
+    Let $\mathcal{A}_1, \mathcal{A}_2$ be boolean algebras.
+    Their \emph{product algebra}
+    $\mathcal{A}_\times = (\mathfrak{D}, \Psi, \den{\_}, \bot, \top, \vee, \wedge, \neg)$,
+    which we denote $\mathcal{A}_\times = \mathcal{A}_1 \times \mathcal{A}_2$,
+    is constructed as follows:
+    $$\begin{array}{c}
+        \mathfrak{D} = \mathfrak{D}_{\mathcal{A}_1} \times \mathfrak{D}_{\mathcal{A}_2} \quad
+        \Psi = 2^{\Psi_{\mathcal{A}_1} \times \Psi_{\mathcal{A}_2}} \quad
+        \den{\{(\varphi_{\mathcal{A}_1i}, \varphi_{\mathcal{A}_2i})\}_i} = 
+            \textstyle\bigcup_i ~\den{\varphi_{\mathcal{A}_1i}}_{\mathcal{A}_1}
+            \times \den{\varphi_{\mathcal{A}_2i}}_{\mathcal{A}_2} \\
+        \bot = \{(\bot_{\mathcal{A}_1}, \bot_{\mathcal{A}_2})\} \qquad
+        \top = \{(\top_{\mathcal{A}_1}, \bot_{\mathcal{A}_2})\} \\
+        \neg\{(\varphi_{\mathcal{A}_1i}, \varphi_{\mathcal{A}_2i})\}_i =
+            \textstyle\bigwedge_i\{(\neg_{\mathcal{A}_1} \varphi_{\mathcal{A}_1i}, \top_{\mathcal{A}_2}),
+            (\top_{\mathcal{A}_1}, \neg_{\mathcal{A}_2} \varphi_{\mathcal{A}_2i})\}\\        
+        \{(\varphi_{\mathcal{A}_1i}, \varphi_{\mathcal{A}_2i})\}_i \vee
+            \{(\varphi_{\mathcal{A}_1j}', \varphi_{\mathcal{A}_2j}')\}_j = 
+            \{(\varphi_{\mathcal{A}_1i}, \varphi_{\mathcal{A}_2i})\}_i \cup
+            \{(\varphi_{\mathcal{A}_1j}', \varphi_{\mathcal{A}_2j}')\}_j \\ 
+        \{(\varphi_{\mathcal{A}_1i}, \varphi_{\mathcal{A}_2i})\}_i \wedge
+            \{(\varphi_{\mathcal{A}_1j}', \varphi_{\mathcal{A}_2j}')\}_j = 
+            \{(\varphi_{\mathcal{A}_1i} \wedge_{\mathcal{A}_1} \varphi_{\mathcal{A}_1j}',
+            \varphi_{\mathcal{A}_2i} \wedge_{\mathcal{A}_2} \varphi_{\mathcal{A}_2j}')
+            \mid \forall i,j\} \\
+    \end{array}$$
+\end{definition}
+
+If $\mathcal{A}_1$ has partitioning function $P_1$
+and $\mathcal{A}_2$ has partitioning function $P_2$,
+then we can construct a partitioning function $P_\times$
+for $\mathcal{A}_\times = \mathcal{A}_1 \times \mathcal{A}_2$:
+$P_\times$ takes as input a list $L_\times$ of sets
+where each set $\ell_{\times_i} \subset \mathfrak{D}_{\mathcal{A}_1} \times \mathfrak{D}_{\mathcal{A}_2}$.
+%
+We first take the set $D_1 = \{d_1 \mid (d_1, d_2) \in \ell_{\times_i}
+\text{ for some } \ell_{\times_i} \in L_\times \}$,
+turn it into a list $D_1' = \{d_{1,1}\},\ldots,\{d_{1,n}\}$,
+and compute a partition $L_1 = P_1(D_1')$.
+Then for each $d_i \in D_1$, we construct a list
+$D_{2,d_i}$ where the $j$-th element is the set
+$\{d_2 \mid (d_i, d_2) \in \ell_{\times_j}\}$
+and compute a partition $L_{2,d_i} = P_2(D_{2,d_i})$.
+%
+Finally, we initialize the list of predicates to be returned
+$L_{\Psi_\times} = \varphi_{\times_1}, \ldots, \varphi_{\times_k}$
+so that initially each $\varphi_{\times_i} = \bot$.
+Then for all $i$ and each $(d_1, d_2) \in \ell_{\times_i}$,
+let $\varphi_{d_1}$ be the predicate in $L_1$ corresponding to
+$\{d_1\}$ in $D_1'$
+and let $\varphi_{d_2}$ be the predicate in $L_{2,d_1}$
+corresponding to the set of $D_{2,d_1}$ that contains $d_2$;
+update $\varphi_{\times_i} \gets \varphi_{\times_i} \vee (\varphi_{d_1}, \varphi_{d_2})$.
+%
+Return $L_{\Psi_\times}$ and terminate.
+
+\begin{example}
+    Suppose we want to find a partition over $(x,y) \in \mathbb{Z} \times \mathbb{Z}$
+    where each component uses the interval algebra,
+    and suppose the input sets are
+    $L_\times = [\{(0, 0), (1, 0), (1,2)\}, \{(0,2)\}]$.
+    Then $D_1' = [\{0\}, \{1\}]$
+    and perhaps $L_1 = P_1(D_1') = [x \leq 0, x > 0]$.
+    Then we have
+    $D_{2,0} = [\{0\}, \{2\}]$ and
+    $D_{2,1} = [\{0,2\}, \emptyset]$.
+    Perhaps
+    $L_{2,0} = P_2(D_{2,0}) = [y \leq 1, y > 1]$ and
+    $L_{2,1} = P_2(D_{2,1}) = [\top, \bot]$.
+    Then (without simplification)
+    $L_{\Psi_\times} = [(x \leq 0, y \leq 1) \vee (x > 0, \top) \vee (x > 0, \top), (x \leq 0, y > 1)]$
+\end{example}
+
+\begin{theorem}[Product Algebra Learnability]\label{thm:prod}
+    Given Boolean algebras $\mathcal{A}_1, \mathcal{A}_2$
+    with partitioning functions $P_1, P_2$
+    and their product algebra $\mathcal{A}_\times$
+    with the composite partitioning function $P_\times$,
+    let $c \in C_\times$ be the target partition over the product algebra,
+    let $c_1 \in C_1$ be the minterms of the $\mathcal{A}_1$-components of $c$, and
+    let $c_2 \in C_2$ be the minterms of the $\mathcal{A}_2$-components of $c$.
+    \rone If $(\mathcal{A}_1, P_1)$ is $s_{g_1}$-learnable
+    and $(\mathcal{A}_2, P_2)$ is $s_{g_2}$-learnable,
+    then there exists $g_\times$ such that
+    $(\mathcal{A}_\times, P_\times)$ is $s_{g_\times}$-learnable
+    where $s_{g_\times}(c) = s_{g_1}(c_1) s_{g_2}(c_2)$.
+    \rtwo If $(\mathcal{A}_\times, P_\times)$ is $s_{g_\times}$-learnable,
+    then there exist $g_1, g_2$ such that
+    $(\mathcal{A}_1, P_1)$ is $s_{g_1}$-learnable
+    and $(\mathcal{A}_2, P_2)$ is $s_{g_2}$-learnable
+    where $s_{g_\times}(c) = s_{g_1}(c_1) = s_{g_2}(c_2)$.
+\end{theorem}
+
+\begin{corollary}\label{thm:prodcor}
+    If $\mathcal{A}_1$
+    and $\mathcal{A}_2$ are in learning class $\mathcal{C}$,
+    then their product $\mathcal{A}_\times$ is also in learning class
+    $\mathcal{C}$.
+\end{corollary}
+Since learnability is closed
+under disjoint union and product,
+symbolic automata over non-recursive data types can 
+be learned using partitioning functions for the component types,
+as opposed to necessitating specialized partitioning functions.
+

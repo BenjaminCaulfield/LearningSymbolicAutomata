@@ -1,0 +1,113 @@
+\section{Preliminaries}
+
+In symbolic automata, transitions carry predicates over a decidable Boolean algebra.
+%\begin{definition}[Effective Boolean Algebra]
+    An \emph{effective Boolean algebra} $\mathcal{A}$
+    is a tuple $(\mathfrak{D}, \Psi, \den{\_}, \bot, \top, \vee, \wedge, \neg)$ where
+    $\mathfrak{D}$ is a set of \emph{domain elements};
+    $\Psi$ is a set of \emph{predicates} closed under the Boolean connectives, with $\bot, \top \in \Psi$;
+    $\den{\_} : \Psi \rightarrow 2^\mathfrak{D}$
+    is a \emph{denotation function} such that
+    \rone $\den{\bot} = \emptyset$,
+    \rtwo $\den{\top} = \mathfrak{D}$,
+    and \rthree for all $\varphi, \psi \in \Psi$,
+        $\den{\varphi \vee \psi} = \den{\varphi} \cup \den{\psi}$,
+        $\den{\varphi \wedge \psi} = \den{\varphi} \cap \den{\psi}$,
+        and $\den{\neg \varphi} = \mathfrak{D} \setminus \den{\varphi}$.
+%\end{definition}
+
+%Since $\Psi$ is closed with respect to $\vee$, $\wedge$, and $\neg$,
+%we can \emph{generate} $\Psi$ from an initial set $\Psi_0$ as follows:
+%for all $i > 0$,
+%\begin{align*}
+%    \Psi_{i+1} = \Psi_i &\cup \{\neg \varphi \mid \varphi \in \Psi_i\}
+%        \cup \{\varphi_1 \vee \varphi_2 \mid \varphi_1, \varphi_2 \in \Psi_i\} 
+%        \cup \{\varphi_1 \wedge \varphi_2 \mid \varphi_1, \varphi_2 \in \Psi_i\}
+%\end{align*}
+%And finally, $\Psi = \bigcup_i \Psi_i$ for all $i \geq 0$.
+%
+%Consider the following examples of Boolean algebras:
+
+\begin{example}[Equality Algebra]
+    %Let $c$ be a fixed variable.
+    The \emph{equality algebra} for an arbitrary set $\mathfrak{D}$
+    has predicates formed from Boolean combinations of
+    formulas of the form $\lambda c \ldotp c = a$ where $a \in \mathfrak{D}$.
+    Formally, $\Psi$ is generated from the Boolean closure of
+    $\Psi_0 = \{\varphi_a \mid a \in \mathfrak{D}\} \cup \{\bot, \top\}$
+    where for all $a \in \mathfrak{D}$, $\den{\varphi_a} = \{a\}$.
+    Example predicates in this algebra include the predicates
+    %$c = 5 \vee c = 10$ and $\neg(c = 0)$.
+    $\lambda c \ldotp c = 5 \vee c = 10$ and $\lambda c \ldotp \neg(c = 0)$.
+\end{example}
+
+\begin{example}[Interval Algebra]
+\label{ex:interval}
+    The finite union of left-closed right-open intervals over 
+    non-negative integers (i.e. $\mathbb{N}$) also forms a Boolean algebra:
+    take the Boolean closure of
+    $\Psi_0 = \{\varphi_{ij} \mid i,j \in \mathbb{N} \land i < j\} \cup \{\bot, \top\}$
+    where $\den{\varphi_{ij}} = [i, j)$.
+    Example predicates in this algebra include those
+    (written as their denotation) of the form
+    $[0,5) \cup [10,15)$ or $[50,\infty)$.
+\end{example}
+
+%Now we are ready to present the formalism of symbolic finite automata.
+
+\begin{definition}[Symbolic Finite Automata]
+A \emph{symbolic finite automaton} (\SFA) $M$
+is a tuple $(\mathcal{A}, Q, q_\text{init}, F, \Delta)$ where
+$\mathcal{A}$ is an effective Boolean algebra, called the \emph{alphabet};
+$Q$ is a finite set of states;
+$q_\text{init} \in Q$ is the \emph{initial state};
+$F \subseteq Q$ is the set of \emph{final states};
+and $\Delta \subseteq Q \times \Psi_\mathcal{A} \times Q$
+is the \emph{transition relation} consisting of
+a finite set of \emph{moves} or \emph{transitions}.
+\end{definition}
+%
+\emph{Characters} are elements of $\mathfrak{D}_\mathcal{A}$,
+and \emph{words} are finite sequences of characters,
+or elements of $\mathfrak{D}_\mathcal{A}^*$.
+The empty word of length 0 is denoted by $\epsilon$.
+A move $\rho = (q_1, \varphi, q_2) \in \Delta$,
+also denoted $q_1 \xrightarrow{\varphi} q_2$,
+is a transition from the \emph{source} state $q_1$
+to the \emph{target} state $q_2$,
+where $\varphi$ is the \emph{guard} or \emph{predicate} of the move.
+A move is \emph{feasible} if its guard is satisfiable.
+%
+For a character $a \in \mathfrak{D}_\mathcal{A}$, 
+an \emph{a-move} of $M$, denoted $q_1 \xrightarrow{a} q_2$
+is a move $q_1 \xrightarrow{\varphi} q_2$
+such that $a \in \den{\varphi}$.
+
+An \SFA\ $M$ is \emph{deterministic} if, for all transitions
+$(q, \varphi_1, q_1), (q, \varphi_2, q_2) \in \Delta$,
+$q_1 \neq q_2 \rightarrow \den{\varphi_1 \wedge \varphi_2} = \emptyset$;
+i.e., for each state $q$ and character $a$ there is at most one $a$-move
+out of $q$.
+An \SFA\ $M$ is \emph{complete} if, for all $q \in Q$,
+$\bigvee_{(q, \varphi_i, q_i) \in \Delta} \varphi_i = \top$;
+i.e., for each state $q$ and character $a$ there exists an $a$-move
+out of $q$.
+Throughout the paper we assume all \SFAs\ are
+deterministic and complete, since
+determinization and completion are always possible~\cite{dantoni14}.
+An example \SFA\ is $\mathbf{M_{11}}$ in Figure~\ref{fig:example}.
+This {\SFA} has 4 states and it operates over the interval algebra from Example~\ref{ex:interval}.
+
+Given an \SFA\ $M = (\mathcal{A}, Q, q_\text{init}, F, \Delta)$
+and a state $q \in Q$, 
+we say a word $w = a_1 a_2 \ldots a_k$ is \emph{accepted at state $q$}
+if, for $1 \leq i \leq k$, there exist moves $q_{i-1} \xrightarrow{a_i} q_i$
+such that $q_0 = q$ and $q_k \in F$.
+We refer to the set of words accepted at $q$ as the
+\emph{language accepted at $q$}, denoted as $\mathcal{L}_q(M)$;
+the \emph{language accepted by $M$} is
+$\mathcal{L}(M) = \mathcal{L}_{q_\text{init}}(M)$.
+%
+The \SFA\ $\mathbf{M_{11}}$ in Figure~\ref{fig:example}
+accepts, among others, words consisting only of numbers accepted by the predicate $[0,51)\cup[101,\infty)$
+and rejects, among others, the word  $51,25$.

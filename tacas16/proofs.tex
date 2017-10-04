@@ -1,0 +1,93 @@
+\section{Proofs}
+
+\subsection*{Proof of Lemma~\ref{thm:evid}}
+This is not a novel proof and follows the
+argument from the original L$^*$ algorithm~\cite{angluin87}
+with small modifications.
+We present a sketch:
+first, observe that every word $w \cdot \epsilon$ for $w \in S \cup R$
+is accepted by $M_\text{evid}$ equivalently to the value of $f(w)$
+by the construction of the transition system
+(this can be shown by an inductive argument).
+Then, for all other $e \in E$,
+it holds for $w \cdot e$ as well:
+since there is a representative $s \in S$ for $w$
+and since the table is evidence-closed,
+there is $s \cdot e \in S \cup R$,
+such that $f(s \cdot e) = f(w \cdot e)$.
+
+\subsection*{Proof of Lemma~\ref{thm:evid2}}
+This is an immediate consequence of the definition of a partitioning function, which
+preserves that all words whose behavior was defined in the evidence automaton
+follow the same paths in the resultant \SFA.
+
+\subsection*{Proof of Theorem~\ref{thm:min}}
+Again, this follows the argument from
+the original L$^*$~\cite{angluin87}.
+We present a sketch:
+consider an arbitrary \SFA consistent with the evidence
+in the observation table:
+it must have at least as many states as the \SFA
+conjectured by the algorithm, since it still must
+have a unique state to differentiate each $s \in S$.
+
+\subsection*{Proof of Theorem~\ref{thm:learn}}
+Each equivalence query that returns a counterexample
+and the subsequent processing that makes the table cohesive
+contributes either \rone the discovery of at least one new state
+or \rtwo the refinement of at least one outgoing set of transitions:
+the former case corresponds to a new instance of a
+generator providing examples to a partitioning function,
+and the latter refers to the next iteration of
+updating the sets of examples provided by a generator.
+Furthermore, once an outgoing partition is correctly learned,
+a counterexample must correspond to a different
+partition being provided examples from its generator.
+Therefore, it is necessarily the case that after
+$\sum_{q_i \in Q} s_{g_i}(c_i)$ equivalence queries,
+each outgoing partition has been learned,
+since that is the definition of each $s_{g_i}$.
+
+\subsection*{Proof of Theorem~\ref{thm:du}}
+Both directions trivially follow the construction of the disjoint union,
+since the two component algebras are handled independently.
+
+\subsection*{Proof of Corollary~\ref{thm:ducor}}
+Consider the case when $\mathcal{A}_1,\mathcal{A}_2 \in \mathcal{C}_\textit{const}^\forall$
+(the rest follow an analogous argument):
+an arbitrary generator for a target partition of their disjoint union
+provides sets of elements, and since the restrictions of those sets
+to $\mathcal{A}_1,\mathcal{A}_2$ require at most $k_1$ and $k_@$
+elements, respectively, to be learned,
+the constant $k_1$ + $k_2$ is a bound for the disjoint union itself.
+
+\subsection*{Proof of Theorem~\ref{thm:prod}}
+\rone If $c_1$ is found after generator $g_1$
+provides $s_{g_1}(c_1)$ total elements
+(and the same for $c_2$), then the parition
+constructed by taking the cartesian product of the minterms,
+which is at least as fine as the target $c$,
+can clearly by learned from a generator that
+provides the products
+of the sets provided by the component generators, which
+has size equal to the product $s_{g_1}(c_1) s_{g_2}(c_2)$.
+Therefore, this is an upper bound for the
+target itself.
+
+\rtwo This direction is trivial, since a component partition
+is just the projection of a special case of
+a partition over the product.
+
+\subsection*{Proof of Corollary~\ref{thm:prodcor}}
+Consider the case when $\mathcal{A}_1,\mathcal{A}_2 \in \mathcal{C}_\textit{const}^\forall$
+(the rest follow an analogous argument):
+an arbitrary generator for a target partition of their product algebra
+provides sets with a some number of elements to learn the partition.
+That number is at most the number that would be required for the
+partition consisting of the minterms of the target:
+because the generator cannot provide redundant elements,
+and since both the $\mathcal{A}_1$-component
+and $\mathcal{A}_2$-component have constant bounds
+$k_1$ and $k_2$, respectively,
+the generator for the product is bounded by $k_1 k_2$.
+

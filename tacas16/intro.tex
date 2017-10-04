@@ -1,0 +1,72 @@
+\section{Introduction}
+
+Finite automata are a ubiquitous formalism that is simple enough to model many real-life systems and phenomena,
+and they enjoy a large variety of theoretical properties:
+automata are closed under Boolean operations,
+have decidable emptiness and equivalence checking procedures, and
+\emph{can be learned}~\cite{angluin87}.
+This last problem on automata learning is the focus of this paper;
+learning has been studied extensively for several variations of finite automata~\cite{Garcia08,Angluin15}
+and has found many applications in program verification~\cite{Alur05} and
+program synthesis~\cite{Yuan14}.
+
+Unfortunately, finite automata have an inherent limitation: 
+they can only operate over finite (and typically small) alphabets.
+Symbolic finite  automata (\SFA) allow transitions to carry predicates over
+rich alphabet theories, such as linear arithmetic, and therefore extend
+classic automata to operate over infinite alphabets, such as
+the set of rational numbers. 
+Existing automata algorithms rely
+on the alphabet being finite, and generalizing them to the symbolic
+setting is not a trivial task. However, 
+algorithms have been proposed for \SFA\ equivalence, for minimization, and for performing Boolean operations.
+In this paper, we study the foundational problem of learning symbolic automata.
+
+We start by
+extending Angluin's L$^*$
+algorithm~\cite{angluin87} for learning regular languages to symbolic automata.
+L$^*$ iteratively updates a table of evidence, conjectures an automaton,
+and then if that conjecture is not correct, repeats with new evidence.
+However, at every step it must make a \emph{query} to an oracle
+for each character in an alphabet;
+thus it does not scale in practice on alphabets that are large
+and cannot be run on those that are infinite.
+Our algorithm, \alg, operates in a largely similar manner,
+except that the queries are asked only for a small set of
+representatives,
+and then there is an additional stage after updating the table of evidence
+during which the evidence is \emph{generalized} into symbolic predicates;
+these predicates form the transitions for the symbolic automaton.
+
+We then define notions of learnability that are parametric in the alphabet theory
+of the symbolic automata and show that these notions compose.
+For example, if two alphabet theories are \emph{learnable},
+then the theory accepting the Cartesian product of their alphabets is also learnable.
+We use these properties to show
+how existing algorithms for learning automata over large alphabets nicely fall in our framework:
+e.g., Maler and Mens present an ad hoc method for learning
+automata over the alphabet
+$\mathbb{Z} \times \mathbb{Z}$~\cite{mens15},
+which we show is learnable because it is the Cartesian product of
+of the alphabet $\mathbb{Z}$---which itself is learnable.
+
+Finally, we implement our algorithm in an open-source symbolic automata library
+and evaluate it on existing automata learning benchmarks
+from~\cite{mens15}.
+The implementation is  modular and only requires the programmer to provide
+learnable Boolean algebras as input to the learner; the disjoint union and product algebras
+are implemented as meta-algebras that can be instantiated arbitrarily.
+Our implementation, despite its generality,
+can learn the benchmarks appearing in~\cite{mens15}
+using a similar number of equivalence and membership queries.
+
+In summary, our contributions are:
+\begin{itemize}
+\vspace{-1mm}
+\item An algorithm for learning Symbolic Finite Automata (\S~\ref{sec:learning}).
+\item A notion of learnability parametric in the alphabet theory that composes over the 
+		 Cartesian product and disjoint union of Boolean algebras (\S~\ref{sec:learnability}).
+\item A modular implementation of our algorithm in an existing open-source library and an evaluation on existing benchmarks (\S~\ref{sec:implementation}).
+\end{itemize}
+%A full version of this paper that includes proofs is available at
+%\url{http://tinyurl.com/hsfwcd6}.

@@ -1,0 +1,7 @@
+\begin{tikzpicture}
+    \node[state,accepting] (1) {$\epsilon$};
+    \draw[<-] (1) -- node[above] {$\mathbf{M_1}$} ++(-.8cm,0);
+    \path
+    (1) edge [loop above] node {$[0,\infty)$} (1)
+    ;
+\end{tikzpicture}
